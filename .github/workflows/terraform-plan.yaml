@@ -26,6 +26,7 @@ jobs:
           git config --global user.name "Dawid Aleksandrowicz"
           git config --global user.email "daleksandrowicz@griddynamics.com"
           tee -a ~/.ssh/config <<EOF
+          ssh-add ~/.ssh/id_rsa
           Host github.com
             HostName github.com
             IdentityFile ~/.ssh/id_rsa
