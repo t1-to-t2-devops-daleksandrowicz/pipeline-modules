@@ -16,6 +16,8 @@ jobs:
         id: fmt
         run: terraform fmt -check
         continue-on-error: true
+      - name: Setup ssh key to download terraform modules from private repositories
+        run: echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
       - name: Terraform Init
         id: init
         run: terraform init
