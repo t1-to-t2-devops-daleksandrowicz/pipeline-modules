@@ -25,6 +25,7 @@ jobs:
           sudo chmod 400 ~/.ssh/id_rsa
           git config --global user.name "Dawid Aleksandrowicz"
           git config --global user.email "daleksandrowicz@griddynamics.com"
+          eval $(ssh-agent)
           ssh-add ~/.ssh/id_rsa
           tee -a ~/.ssh/config <<EOF
           Host github.com
