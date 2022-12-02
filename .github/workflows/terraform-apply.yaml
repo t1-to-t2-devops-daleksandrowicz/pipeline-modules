@@ -1,0 +1,24 @@
+name: terraform-apply
+
+on:
+  workflow_call:
+
+jobs:
+  terraform-apply:
+    runs-on: ubuntu-latest
+    name: Deploy environment
+    defaults:
+      run:
+        working-directory: hardware
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      # - name: Deploy terraform
+      #   if: github.ref == 'refs/heads/master'
+      #   run: terraform apply -auto-approve

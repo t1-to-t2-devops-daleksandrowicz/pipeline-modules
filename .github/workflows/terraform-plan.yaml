@@ -1,10 +1,10 @@
-name: terraform
+name: terraform-plan
 
 on:
   workflow_call:
 
 jobs:
-  terraform:
+  terraform-plan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
