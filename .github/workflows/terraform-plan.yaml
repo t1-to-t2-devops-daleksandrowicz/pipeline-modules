@@ -37,10 +37,10 @@ jobs:
         id: init
         run: |
           cd ./hardware
-          terraform init -chdir=${{ github.workspace }}./hardware
+          terraform init -chdir=${{ github.workspace }}/hardware
       - name: Terraform Validate
         id: validate
-        run: terraform validate -no-color -chdir=${{ github.workspace }}./hardware
+        run: terraform validate -no-color -chdir=${{ github.workspace }}/hardware
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -chdir=${{ github.workspace }}./hardware
+        run: terraform plan -no-color -chdir=${{ github.workspace }}/hardware
