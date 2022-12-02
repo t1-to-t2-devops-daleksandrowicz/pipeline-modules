@@ -17,7 +17,7 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Terraform fmt
         id: fmt
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
         continue-on-error: true
       - name: Setup ssh key to download terraform modules from private repositories
         run: |
@@ -37,10 +37,10 @@ jobs:
         id: init
         run: |
           cd ./hardware
-          terraform init -chdir=${{ github.workspace }}/hardware
+          terraform -chdir=${{ github.workspace }}/hardware init
       - name: Terraform Validate
         id: validate
-        run: terraform validate -no-color -chdir=${{ github.workspace }}/hardware
+        run: terraform -chdir=${{ github.workspace }}/hardware validate -no-color
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -chdir=${{ github.workspace }}/hardware
+        run: terraform -chdir=${{ github.workspace }}/hardware plan -no-color
