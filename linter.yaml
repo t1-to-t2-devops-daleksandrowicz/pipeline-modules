@@ -1,0 +1,17 @@
+name: linter
+
+on:
+  workflow_call:
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - name: TODO lint
+        run: grep -rnw 'TODO:' . --color=auto --exclude-dir=.git
+      - name: YAML Lint
+        uses: ibiqlik/action-yamllint@v3.1.1
+      - name: Shellcheck
+        uses: reviewdog/action-shellcheck@v1.12.0
