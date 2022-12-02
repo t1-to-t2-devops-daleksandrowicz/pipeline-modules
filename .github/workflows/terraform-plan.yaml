@@ -28,6 +28,8 @@ jobs:
             HostName github.com
             IdentityFile ~/.ssh/id_rsa
           EOF
+          git config --global --name "Dawid Aleksandrowicz"
+          git config --global --email "daleksandrowicz@griddynamics.com"
       - name: Terraform Init
         id: init
         run: |
