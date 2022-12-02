@@ -2,6 +2,9 @@ name: terraform-plan
 
 on:
   workflow_call:
+    secrets:
+      SSH_PRIVATE_KEY:
+        required: true
 
 jobs:
   terraform-plan:
@@ -17,8 +20,6 @@ jobs:
         run: terraform fmt -check
         continue-on-error: true
       - name: Setup ssh key to download terraform modules from private repositories
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh && touch ~/.ssh/config
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
