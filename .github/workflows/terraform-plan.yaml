@@ -25,7 +25,9 @@ jobs:
           sudo chmod 600 ~/.ssh/id_rsa
       - name: Terraform Init
         id: init
-        run: terraform init
+        run: |
+          cd ./hardware
+          terraform init
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
