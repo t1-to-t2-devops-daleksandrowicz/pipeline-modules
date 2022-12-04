@@ -1,0 +1,32 @@
+name: middleware
+
+on:
+  workflow_call:
+    inputs:
+      region:
+        required: true
+        type: string
+      cluster_name:
+        required: true
+        type: string
+
+jobs:
+  argocd:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/middleware/argocd
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - name: Set AWS credentials
+        run: |
+          aws eks --region ${{ inputs.region }} update-kubeconfig \
+            --name ${{ inputs.cluster_name }} 
+      - name: ArgoCD
+        run: |
+          helm upgrade argo-cd argo-cd \
+            --install \
+            --repo https://argoproj.github.io/argo-helm \
+            --namespace="argocd" \
+            --version "5.16.1"

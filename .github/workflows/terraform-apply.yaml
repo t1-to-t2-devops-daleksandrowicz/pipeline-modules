@@ -10,6 +10,9 @@ jobs:
     defaults:
       run:
         working-directory: hardware
+    outputs:
+      region: ${{ steps.output-region.outputs.region }}
+      cluster_name: ${{ steps.output-cluster-name.outputs.cluster_name }}
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -22,3 +25,9 @@ jobs:
       # - name: Deploy terraform
       #   if: github.ref == 'refs/heads/master'
       #   run: terraform apply -auto-approve
+      - name: Output region
+        id: output-region
+        run: echo "region=$(terraform output -raw region)" >> $GITHUB_OUTPUT
+      - name: Output cluster_name
+        id: output-cluster-name
+        run: echo "region=$(terraform output -raw cluster_name)" >> $GITHUB_OUTPUT
