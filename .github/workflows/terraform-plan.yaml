@@ -2,9 +2,6 @@ name: terraform-plan
 
 on:
   workflow_call:
-    secrets:
-      SSH_PRIVATE_KEY:
-        required: true
 
 jobs:
   terraform-plan:
@@ -24,6 +21,7 @@ jobs:
         continue-on-error: true
       - name: Setup ssh key to download terraform modules from private repositories
         run: |
+          # TODO: Simplify ssh key authentication
           mkdir -p ~/.ssh && touch ~/.ssh/config
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           sudo chmod 400 ~/.ssh/id_rsa
