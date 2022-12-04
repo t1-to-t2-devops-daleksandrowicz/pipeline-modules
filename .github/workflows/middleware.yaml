@@ -29,4 +29,24 @@ jobs:
             --install \
             --repo https://argoproj.github.io/argo-helm \
             --namespace="argocd" \
+            --create-namespace \
             --version "5.16.1"
+      - name: Create Secret to connect microservices-demo repo
+        run: |
+          cat <<EOF | kubectl apply -f -     
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            labels:
+              argocd.argoproj.io/secret-type: repository
+            name: microservices-demo
+            namespace: argocd
+          type: Opaque
+          stringData:
+            sshPrivateKey: |
+              ${{ secrets.SSH_PRIVATE_KEY }}
+            url: git@github.com:t1-to-t2-devops-daleksandrowicz/microservices-demo.git
+          EOF
+      - name: Deploy ArgoCD application
+        run: |
+          kubectl apply -f application.yaml
