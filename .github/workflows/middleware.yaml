@@ -15,7 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.workspace }}/middleware/argocd
+        working-directory: ${{ github.workspace }}/middleware/argo-cd
+    env:
+      ARGOCD_NAMESPACE: "argo-cd"
+      CATALOGUE_DB_USERNAME: ${{ secrets.CATALOGUE_DB_USERNAME }}
+      CATALOGUE_DB_PASSWORD: ${{ secrets.CATALOGUE_DB_PASSWORD }}
+      CATALOGUE_DB_MYSQL_ROOT_PASSWORD: ${{ secrets.CATALOGUE_DB_MYSQL_ROOT_PASSWORD }}
+      CATALOGUE_DB_MYSQL_DATABASE: ${{ secrets.CATALOGUE_DB_MYSQL_DATABASE }}
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -23,16 +29,17 @@ jobs:
         run: |
           aws eks --region ${{ inputs.region }} update-kubeconfig \
             --name ${{ inputs.cluster_name }} 
-      - name: ArgoCD
+      - name: Install ArgoCD helm chart
         run: |
           helm upgrade argo-cd argo-cd \
             --install \
             --repo https://argoproj.github.io/argo-helm \
-            --namespace="argocd" \
+            --namespace="${{ env.ARGOCD_NAMESPACE }}" \
             --create-namespace \
+            -f ./values.yaml \
             --version "5.16.1"
       - name: Create Secret to connect microservices-demo repo
-        run: |
+        run: |-
           cat <<EOF | kubectl apply -f -     
           apiVersion: v1
           kind: Secret
@@ -40,13 +47,73 @@ jobs:
             labels:
               argocd.argoproj.io/secret-type: repository
             name: microservices-demo
-            namespace: argocd
+            namespace: ${{ env.ARGOCD_NAMESPACE }}
           type: Opaque
           stringData:
-            sshPrivateKey: |
+            sshPrivateKey: |-
               ${{ secrets.SSH_PRIVATE_KEY }}
             url: git@github.com:t1-to-t2-devops-daleksandrowicz/microservices-demo.git
           EOF
       - name: Deploy ArgoCD application
         run: |
-          kubectl apply -f application.yaml
+          kubectl apply -f ./application.yaml
+
+  prometheus:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/middleware/prometheus
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - name: Set AWS credentials
+        run: |
+          aws eks --region ${{ inputs.region }} update-kubeconfig \
+            --name ${{ inputs.cluster_name }}
+      - name: Install Prometheus helm chart
+        run: |
+          helm pull kube-prometheus-stack --repo https://prometheus-community.github.io/helm-charts --version "42.1.1" --untar
+          cp ./dashboards-1.14/argo-cd.yaml ./kube-prometheus-stack/templates/grafana/dashboards-1.14/
+          helm upgrade prometheus ./kube-prometheus-stack --install --namespace="prometheus" --create-namespace
+
+  elk-stack:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/middleware/elk
+    env:
+      ELK_NAMESPACE: "elk-stack"
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout
+      - name: Set AWS credentials
+        run: |
+          aws eks --region ${{ inputs.region }} update-kubeconfig \
+            --name ${{ inputs.cluster_name }}
+      - name: Install Elasticsearch helm chart
+        run: |
+          helm upgrade elasticsearch elasticsearch \
+            --install \
+            --repo https://helm.elastic.co \
+            --namespace="${{ env.ELK_NAMESPACE }}" \
+            --create-namespace \
+            -f ./elasticsearch.yaml \
+            --version "8.5.1"
+      - name: Install Kibana helm chart
+        run: |
+          helm upgrade kibana kibana \
+            --install \
+            --repo https://helm.elastic.co \
+            --namespace="${{ env.ELK_NAMESPACE }}" \
+            --create-namespace \
+            -f ./kibana.yaml \
+            --version "8.5.1"
+      - name: Install Logstash helm chart
+        run: |
+          helm upgrade logstash logstash \
+            --install \
+            --repo https://helm.elastic.co \
+            --namespace="${{ env.ELK_NAMESPACE }}" \
+            --create-namespace \
+            -f ./logstash.yaml \
+            --version "8.5.1"
