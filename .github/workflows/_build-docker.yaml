@@ -2,13 +2,11 @@ name: Build and Push Docker
 
 on:
   workflow_call:
-    inputs:
+    secrets:
       docker_hub_username:
         required: true
-        type: string
       docker_hub_access_token:
         required: true
-        type: string
 
 jobs:
   build-push:
@@ -29,11 +27,11 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: ${{ inputs.docker_hub_username }}
-          password: ${{ inputs.docker_hub_access_token }}
+          username: ${{ secrets.docker_hub_username }}
+          password: ${{ secrets.docker_hub_access_token }}
       - name: Build and push Docker image
         run: |
           CUR_VER="`./gradlew currentVersion -q -Prelease.quiet`-feature-${GITHUB_SHA}"
           ./gradlew build dockerPushDockerHub \
-            -PdockerHubRegistry=${{ inputs.docker_hub_username }}
+            -PdockerHubRegistry=${{ secrets.docker_hub_username }}
             -PdockerTagVersion=${CUR_VER}
