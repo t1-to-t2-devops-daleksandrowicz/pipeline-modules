@@ -31,8 +31,8 @@ jobs:
           password: ${{ secrets.docker_hub_access_token }}
       - name: Build and push Docker image
         run: |
-          #./gradlew build
-          CUR_VER="$(./gradlew currentVersion -q -Prelease.quiet)-feature-${GITHUB_SHA}"
+          ./gradlew clean
+          CUR_VER="`./gradlew currentVersion -q -Prelease.quiet)`-feature-${GITHUB_SHA}"
           ./gradlew dockerPushDockerHub \
             -PdockerHubRegistry=${{ secrets.docker_hub_username }} \
             -PtagVersion=${CUR_VER} \
