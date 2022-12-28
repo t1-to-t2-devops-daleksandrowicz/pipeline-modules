@@ -32,7 +32,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           ./gradlew clean
-          CUR_VER="`./gradlew currentVersion -q -Prelease.quiet)`-feature-${GITHUB_SHA}"
+          CUR_VER="`./gradlew currentVersion -q -Prelease.quiet`-feature-${GITHUB_SHA}"
           ./gradlew dockerPushDockerHub \
             -PdockerHubRegistry=${{ secrets.docker_hub_username }} \
             -PtagVersion=${CUR_VER} \
