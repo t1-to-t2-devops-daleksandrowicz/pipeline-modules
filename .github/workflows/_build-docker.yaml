@@ -36,4 +36,4 @@ jobs:
           ./gradlew dockerPushDockerHub \
             -PdockerHubRegistry=${{ secrets.docker_hub_username }} \
             -PtagVersion=${CUR_VER} \
-            --stacktrace
+            --info
