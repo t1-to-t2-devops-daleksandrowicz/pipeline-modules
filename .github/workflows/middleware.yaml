@@ -22,6 +22,8 @@ jobs:
       CATALOGUE_DB_PASSWORD: ${{ secrets.CATALOGUE_DB_PASSWORD }}
       CATALOGUE_DB_MYSQL_ROOT_PASSWORD: ${{ secrets.CATALOGUE_DB_MYSQL_ROOT_PASSWORD }}
       CATALOGUE_DB_MYSQL_DATABASE: ${{ secrets.CATALOGUE_DB_MYSQL_DATABASE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -29,6 +31,9 @@ jobs:
         run: |
           aws eks --region ${{ inputs.region }} update-kubeconfig \
             --name ${{ inputs.cluster_name }} 
+      - uses: azure/setup-helm@v3
+        with:
+            version: 'v3.10.3'
       - name: Install ArgoCD helm chart
         run: |
           helm upgrade argo-cd argo-cd \
@@ -38,6 +43,9 @@ jobs:
             --create-namespace \
             -f ./values.yaml \
             --version "5.16.1"
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.22.17' # default is latest stable
       - name: Create Secret to connect microservices-demo repo
         run: |-
           cat <<EOF | kubectl apply -f -     
@@ -51,7 +59,7 @@ jobs:
           type: Opaque
           stringData:
             sshPrivateKey: |-
-              ${{ secrets.SSH_PRIVATE_KEY }}
+              ${{ secrets.SSH_PRIVATE_KEY_ENCB64 }}
             url: git@github.com:t1-to-t2-devops-daleksandrowicz/microservices-demo.git
           EOF
       - name: Deploy ArgoCD application
@@ -60,6 +68,9 @@ jobs:
 
   prometheus:
     runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     defaults:
       run:
         working-directory: ${{ github.workspace }}/middleware/prometheus
@@ -70,6 +81,9 @@ jobs:
         run: |
           aws eks --region ${{ inputs.region }} update-kubeconfig \
             --name ${{ inputs.cluster_name }}
+      - uses: azure/setup-helm@v3
+        with:
+            version: 'v3.10.3'
       - name: Install Prometheus helm chart
         run: |
           helm pull kube-prometheus-stack --repo https://prometheus-community.github.io/helm-charts --version "42.1.1" --untar
@@ -83,6 +97,8 @@ jobs:
         working-directory: ${{ github.workspace }}/middleware/elk
     env:
       ELK_NAMESPACE: "elk-stack"
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v2
         name: Checkout
@@ -90,6 +106,9 @@ jobs:
         run: |
           aws eks --region ${{ inputs.region }} update-kubeconfig \
             --name ${{ inputs.cluster_name }}
+      - uses: azure/setup-helm@v3
+        with:
+            version: 'v3.10.3'
       - name: Install Elasticsearch helm chart
         run: |
           helm upgrade elasticsearch elasticsearch \
